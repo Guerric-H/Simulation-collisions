@@ -1,42 +1,37 @@
 # Simulation-collisions
 
-Evenements potentiels :
+Le projet est composé des fichiers suivants :
 
--debut d'emission
--fin d'emission (validé = reception)
--debut d'init
+Makefile : fichier permettant d'automatiser le processus de compilation et d'exécution du projet, il permet d'effectuer les commandes suivantes :
 
--collision = 1 debut d'emission avant précédente fin d'emission
+    run : commande par défaut, produit un exécutables effectue l'ensemble des simulations possibles listées ci-dessous. Produit l'ensemble des .pdf résultats des simulations.
 
-debut d'init -> debut emission , t + exp(init)
-fin d'emission -> debut d'emission, t + exp(init)
+    clean : nettoie l'ensemble des fichiers résultants d'une exécution sauf les fichiers au format pdf.
+    
+    clean_w_pdf : identique à clean en supprimant aussi les pdf.
 
-debut attente -> debut emission t + exp(mu)
+    compile : compile le projet et produit un exécutable "main"
 
-File : taille 1
+    standard : 
+        exécute le programme avec l'argument standard, permettant de produire un fichier standard.txt. 
 
-collision -> deux paquets réessaient ~max 7 fois
-si 7 fois et encore collision -> perdu
+        exécute le script standard.R produisant un fichier standard.pdf
+        Utiliser cette commande pour ne pas effectuer les autres simulations inutilement.
 
-Lors de collision :
-paquet1 -> Exp(mu)
-paquet2 -> Exp(mu)
+    confiance, histogramme, collision se comportent de la même manière que standard.
 
-Début de simulation :
+    clean_stand / conf / histo / collis : supprime chaque fichier résultant du mode sélectionné.
 
-K capteurs -> ajout evenement loi exp(init) // init = 0.1
+main.cpp : le fichier contenant le code de la simulation
 
-----------|
-paquet    |--- exp(lambda) ------
-----------|
-    ^
-    |
-paquet -> pas de temps
+standard.R : produit un fichier pdf en utilisant les résultats obtenus par la simulation dans le mode standard (une simulation, pas de changement de paramètre).
 
-paquet collisioné -> on ajoute
+confiance.R : produit un fichier pdf en utilisant les résultats obtenus par la simulation dans le mode confiance (50 simulations, pas de changement de paramètre).
 
-collision -> 2 capteurs = exp(mu) attente
+histogramme.R : produit un fichier pdf en utilisant les résultats obtenus par la simulation dans le mode histogramme (1 simulation, pas de changement de paramètre).
 
-                            ----------|
-paquet ---- exp(mu) ---->   paquet    |--- exp(lambda) ----- fin d'emission
-                            ----------|
+collision.R : produit un fichier pdf en utilisant les résultats obtenus par la simulation dans le mode collision (100 simulations, le nombre de capteur augmente de 1 à chaque simulation (1 : 100)).
+
+e2_90succes.R : produit un fichier pdf en utilisant les résultats obtenus par la simulation dans le mode collision (100 simulations, le nombre de capteur augmente de 1 à chaque simulation (1 : 100)). Permet de répondre à la dernière question du projet de façon visuelle.
+
+README.md : le fichier que vous lisez actuellement.
