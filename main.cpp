@@ -275,8 +275,10 @@ void simulateur(SimulatorMode mode)
     {
 
         // On prend le premier évènement et on le traite
-        traitement_event(echeancier.back());
+        Event e = echeancier.back();
         echeancier.pop_back();
+
+        traitement_event(e);
 
         // Si tous les capteurs n'ont pas émis au moins MAX paquets, on continue
         run = false;
@@ -404,7 +406,10 @@ void run(const std::string &mode)
                 total_trials += trials[j];
             }
 
-            file_collisions << (double)total_collisions / (double)total_trials << std::endl;
+            int total_transmitted = total_trials - total_collisions;
+            double proba_e1_e2_success = (trials[0] + trials[1] - collisions[0] - collisions[1]) / (double)total_transmitted;
+
+            file_collisions << (double)total_collisions / (double)total_trials << " " << proba_e1_e2_success << std::endl;
 
             reset_simulator();
         }

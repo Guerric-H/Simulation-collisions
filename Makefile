@@ -15,35 +15,39 @@ all: compile
 compile: 
 	$(CPP) $(FLAGS) $(LINK_EXEC)
 
-
-standard: compile
+standard: clean_stand compile
 	./main standard
 	R CMD BATCH standard.R
 
-confiance: compile
+confiance: clean_conf compile 
 	./main confiance
 	R CMD BATCH confiance.R
 
-histogramme: compile
+histogramme: clean_histo compile
 	./main histogramme
 	R CMD BATCH histogramme.R
 
-collision: compile
+
+collision: clean_collis compile
 	./main collision
 	R CMD BATCH collision.R
+	R CMD BATCH e2_90succes.R
 
 clean_stand: 
-	rm standard.txt standard.Rout standard.pdf
+	rm -f standard.txt standard.Rout standard.pdf
 
 clean_conf: 
-	rm confiance.txt confiance.Rout confiance.pdf
+	rm -f confiance.txt confiance.Rout confiance.pdf
 
 clean_histo: 
-	rm hist*.txt histogramme.Rout histogramme.pdf
+	rm -f hist*.txt histogramme.Rout histogramme.pdf
 
 clean_collis: 
-	rm collisions.txt collision.Rout collision.pdf
+	rm -f collisions.txt collision.Rout e2_90succes.Rout e2_90succes.pdf collision.pdf 
 
-clean:
-	rm *.txt main *.Rout *.pdf
+clean : 
+	rm -f *.txt main *.Rout 
+
+clean_w_pdf:
+	rm -f *.txt main *.Rout *.pdf
 

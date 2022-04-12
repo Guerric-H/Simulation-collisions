@@ -35,6 +35,7 @@
 #Executables output
 *.txt
 *.Rout
+*.RData
 
 #Ressources 
 *.pdf
