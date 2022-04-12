@@ -28,8 +28,7 @@ double expo(double param)
     static std::mt19937 generator(std::chrono::high_resolution_clock::now().time_since_epoch().count());
     static std::uniform_real_distribution<double> distrib(0, 1);
 
-    double rand = distrib(generator);
-    return -log(rand) / param;
+    return -log(distrib(generator)) / param;
 }
 
 // Différents types d'events
@@ -47,11 +46,6 @@ struct Event
     double time;    // Temps au départ de l'évènement
 
     Event(EventType ty, int id, double t) : type(ty), id_sensor(id), time(t) {}
-};
-
-struct event_more
-{
-    bool operator()(const Event &lhs, const Event &rhs) { return lhs.time > rhs.time; }
 };
 
 struct Sensor
@@ -81,6 +75,20 @@ int eff_id(int id)
     return (id - 1) / 2;
 }
 
+void insert_echeancier(Event &&event)
+{
+    if (echeancier.empty())
+    {
+        echeancier.emplace_back(event);
+        return;
+    }
+
+    auto it = echeancier.begin();
+    while (event.time < it->time and it != echeancier.end())
+        it++;
+    echeancier.insert(it, event);
+}
+
 void traitement_collision(Event &e)
 {
 
@@ -106,7 +114,7 @@ void traitement_collision(Event &e)
     else
         sensors[e.id_sensor].current_state = 0;
 
-    echeancier.emplace_back(Event(EventType::BeginEmission, e.id_sensor, e.time + expo(MU))); // Le capteur passe en attente pour exp(mu)
+    insert_echeancier(Event(EventType::BeginEmission, e.id_sensor, e.time + expo(MU))); // Le capteur passe en attente pour exp(mu)
 
     // Si le capteur n'est pas l'état e7
     if (sensors[current_emiting].current_state < EMISSION_MAX + COLLISION_MAX)
@@ -116,7 +124,7 @@ void traitement_collision(Event &e)
     else
         sensors[current_emiting].current_state = 0;
 
-    echeancier.emplace_back(Event(EventType::BeginEmission, current_emiting, e.time + expo(MU))); // Le capteur passe en attente pour exp(mu)
+    insert_echeancier(Event(EventType::BeginEmission, current_emiting, e.time + expo(MU))); // Le capteur passe en attente pour exp(mu)
 
     // Les deux capteurs passent en attente, le canal est donc libéré
     current_emiting = -1;
@@ -143,7 +151,7 @@ void traitement_event(Event &e)
         else
         {
             current_emiting = e.id_sensor;
-            echeancier.emplace_back(Event(EventType::EndEmission, e.id_sensor, global_time + expo(LAMBDA)));
+            insert_echeancier(Event(EventType::EndEmission, e.id_sensor, global_time + expo(LAMBDA)));
 
             if (sensors[e.id_sensor].current_state == 1) // Capteur en état e1
                 begin_date_e1 = global_time;
@@ -171,7 +179,7 @@ void traitement_event(Event &e)
             finished[e.id_sensor] = true; // Si le capteur a transmit ses MAX paquets, il l'indique
         }
 
-        echeancier.emplace_back(Event(EventType::BeginEmission, e.id_sensor, global_time + expo(INIT))); // Ajout de la prochaine transmission à l'échéancier
+        insert_echeancier(Event(EventType::BeginEmission, e.id_sensor, global_time + expo(INIT))); // Ajout de la prochaine transmission à l'échéancier
     }
 
     else
@@ -192,13 +200,21 @@ enum SimulatorMode
 void reset_simulator()
 {
     echeancier.clear();
+    echeancier.reserve(K + 1);
+
     sensors.clear();
+    sensors.reserve(K + 1);
+
     current_emiting = -1;
     global_time = 0.0;
-    finished.clear();
 
-    collisions.clear();
-    trials.clear();
+    finished.clear();
+    finished.reserve(K + 1);
+
+    for (auto &c : collisions)
+        c = 0;
+    for (auto &t : trials)
+        t = 0;
 
     begin_date_e1 = begin_date_e2 = 0.0;
     write_e1 = write_e2 = false;
@@ -213,7 +229,7 @@ void simulateur(SimulatorMode mode)
     {
         sensors.emplace_back(Sensor());
         finished.push_back(false);
-        echeancier.emplace_back(Event(EventType::BeginEmission, i, global_time + expo(INIT)));
+        insert_echeancier(Event(EventType::BeginEmission, i, global_time + expo(INIT)));
     }
 
     // Initialisation variables statistiques
@@ -254,20 +270,13 @@ void simulateur(SimulatorMode mode)
         }
     }
 
-    // Tri des évènements initiaux
-    // echeancier.sort(event_less());
-    std::sort(echeancier.begin(), echeancier.end(), event_more());
-
     // Boucle de la simulation
     while (run)
     {
 
         // On prend le premier évènement et on le traite
-        Event e = echeancier.back();
+        traitement_event(echeancier.back());
         echeancier.pop_back();
-
-        traitement_event(e);
-        std::sort(echeancier.begin(), echeancier.end(), event_more());
 
         // Si tous les capteurs n'ont pas émis au moins MAX paquets, on continue
         run = false;
@@ -383,7 +392,7 @@ void run(const std::string &mode)
 
         for (int i = 1; i <= 100; i++)
         {
-            std::cout << "K = " << i << std::endl;
+            // std::cout << "K = " << i << std::endl;
             K = i;
 
             simulateur(Collision);
