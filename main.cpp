@@ -109,22 +109,27 @@ void traitement_collision(Event &e)
     // Si le capteur n'est pas dans l'état e7
     if (sensors[e.id_sensor].current_state < EMISSION_MAX + COLLISION_MAX)
     {
-        sensors[e.id_sensor].current_state++; // Passage en w_x
+        sensors[e.id_sensor].current_state++;                                               // Passage en w_x
+        insert_echeancier(Event(EventType::BeginEmission, e.id_sensor, e.time + expo(MU))); // Le capteur passe en attente pour exp(mu)
     }
     else
+    {
+        // Ràz du capteur et ajout de BeginEmission après expo(init) d'attente
         sensors[e.id_sensor].current_state = 0;
-
-    insert_echeancier(Event(EventType::BeginEmission, e.id_sensor, e.time + expo(MU))); // Le capteur passe en attente pour exp(mu)
+        insert_echeancier(Event(EventType::BeginEmission, e.id_sensor, e.time + expo(INIT)));
+    }
 
     // Si le capteur n'est pas l'état e7
     if (sensors[current_emiting].current_state < EMISSION_MAX + COLLISION_MAX)
     {
-        sensors[current_emiting].current_state++; // Passage en w_x
+        sensors[current_emiting].current_state++;                                               // Passage en w_x
+        insert_echeancier(Event(EventType::BeginEmission, current_emiting, e.time + expo(MU))); // Le capteur passe en attente pour exp(mu)
     }
     else
+    {
         sensors[current_emiting].current_state = 0;
-
-    insert_echeancier(Event(EventType::BeginEmission, current_emiting, e.time + expo(MU))); // Le capteur passe en attente pour exp(mu)
+        insert_echeancier(Event(EventType::BeginEmission, current_emiting, e.time + expo(INIT)));
+    }
 
     // Les deux capteurs passent en attente, le canal est donc libéré
     current_emiting = -1;
@@ -394,7 +399,7 @@ void run(const std::string &mode)
 
         for (int i = 1; i <= 100; i++)
         {
-            // std::cout << "K = " << i << std::endl;
+            std::cout << "K = " << i << std::endl;
             K = i;
 
             simulateur(Collision);

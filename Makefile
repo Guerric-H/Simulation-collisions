@@ -14,6 +14,7 @@ all: compile
 	$(R) confiance.R
 	$(R) histogramme.R
 	$(R) collision.R
+	$(R) e2_90succes.R
 compile: 
 	$(CPP) $(FLAGS) $(LINK_EXEC)
 
